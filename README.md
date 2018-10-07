@@ -14,7 +14,7 @@ pyLoad Bookmarklet
 
 Installation and Use:
 ---------------------
-1. Download [pyload_bookmarklet.min.js](https://raw.githubusercontent.com/pyload/bookmarklet/master/pyload_bookmarklet.min.js) and save it to your local disk.
+1. Download [pyload_bookmarklet.min.js](https://raw.githubusercontent.com/pyload/pyload-bookmarklet/master/pyload_bookmarklet.min.js) and save it to your local disk.
 2. Open *pyload_bookmarklet.min.js* with your favorite text editor and:
    - go to the end of the file - first parameter is the *pyLoad host*, the second is the *username*, the third is the *password* and the last is *submit method* (see notes below).
    - specify the pyLoad host (for method 1 this is typically should be `http://localhost:9666`, for methods 2&3 `http://localhost:8000`) and submit method.
@@ -37,7 +37,7 @@ Usage:
 
 Credits
 -------
-See [CREDITS.md](https://raw.githubusercontent.com/pyload/bookmarklet/master/CREDITS.md) file.
+See [CREDITS.md](https://github.com/pyload/pyload-bookmarklet/blob/master/CREDITS.md) file.
 
 Notes:
 ------
