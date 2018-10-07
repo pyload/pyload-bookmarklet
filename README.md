@@ -12,7 +12,7 @@ pyLoad Bookmarklet
 - Copy checked URLs to clipboard.
 - Shorter Timeout to close dialog.
 
-Installation and Use:
+Installation:
 ---------------------
 1. Download [pyload_bookmarklet.min.js](https://raw.githubusercontent.com/pyload/pyload-bookmarklet/master/pyload_bookmarklet.min.js) and save it to your local disk.
 2. Open *pyload_bookmarklet.min.js* with your favorite text editor and:
