@@ -41,7 +41,7 @@ See [CREDITS.md](https://github.com/pyload/pyload-bookmarklet/blob/master/CREDIT
 
 Notes:
 ------
-- This bookmarklet has two methods to submit links to pyLoad, you have to choose one.
+- This bookmarklet has three methods to submit links to pyLoad, you have to choose one.
 - Both methods have pros and cons:
   - Method 1 - links are sent via http://<pyload_host>/flash/add
     - pros:
