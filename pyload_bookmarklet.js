@@ -5,11 +5,13 @@ javascript:
 
     function getPageLinks() {
         var list_Links = [];
+        var unique_links = {};
         for (var e = parentWin.document.links.length - 1, t; t = parentWin.document.links[e]; e--) {
             if (!t.href.match(/^(?:mailto:|javascript:|data:)/)) {
-                if (list_Links.indexOf(t.href) < 0) {
-                    list_Links.push(t.href);
-                }
+              if(!unique_links[t.href]) {
+                unique_links[t.href] = true;
+                list_Links.push({href:t.href,name:t.text});
+              }
             }
         }
         return list_Links;
@@ -33,58 +35,63 @@ javascript:
         var title;
         if (!t) {
             t = "";
-            title = "<h2> Links: </h2>";
+            title = "<h4> Links: </h4>";
         } else {
-            title = "<h2> Filtered links: &quot;" + t + "&quot;</h2>";
+            title = "<h4> Filtered links: &quot;" + t + "&quot;</h4>";
         }
-        var html = title + '<div id="container"><input type="checkbox" id="checkall"><label for="checkall">All</label><br>';
+        t = t.toLocaleLowerCase();
+        var html = title + '<div id="container"><input type="checkbox" id="checkall" class="form-check-input"><label for="checkall">All</label><div class="form-check">';
         for (var n = 0; n < list_Links.length; n++) {
-            if (list_Links[n].indexOf(t) !== -1) {
-                html += '<div style="display: inline-block; margin: 0;margin-left: 1em;white-space: nowrap;"><input type="checkbox"' + (list_Checked[n] ? ' checked' : '') + ' id="link' + n + '"><label for="link' + n + '"><a href="' + list_Links[n] + '">' + list_Links[n] + "</a></label></div><br>";
+            if (list_Links[n].href.toLocaleLowerCase().indexOf(t) !== -1 || list_Links[n].name.toLocaleLowerCase().indexOf(t) !== -1) {
+                html += '<div class="form-check"><input class="form-check-input" type="checkbox"' + (list_Checked[n] ? ' checked' : '') + ' id="link' + n + '"><label class="form-check-label small" for="link' + n + '"><span class="badge badge-warning">' + list_Links[n].name + '</span>&nbsp;<a href="' + list_Links[n].href + '">' + list_Links[n].href + "</a></label></div>";
             }
         }
+        html += "</div></div>";
         var r = bookmarkletWin.document.getElementById("divLinks");
-        r.innerHTML = html + "</div>";
+        r.innerHTML = html;
     }
 
     function bookmarklet() {
         var pnd = document.createElement("div");
         var z = document.createElement("div");
-        z.innerHTML = 'Package Name: ';
-        z.setAttribute("style", "margin:18px 0;white-space:nowrap");
+        z.innerHTML = '<h4>Package Name:</h4>';
         var pnt = document.createElement("input");
         pnt.style.display = "inline-block";
         pnt.setAttribute("id", "packagename");
         pnt.setAttribute("type", "text");
         pnt.setAttribute("size", "70");
+        pnt.setAttribute("class", "form-control");
         pnt.setAttribute("value", parentWin.document.title);
         pnt.setAttribute("placeholder", "Package Name");
         pnt.oninput = function () {
             updateButtons();
         };
         z.appendChild(pnt);
+        var group = document.createElement("div");
+        group.setAttribute("class","btn-group");
+        group.setAttribute("role","group");
         var f = document.createElement("button");
         f.setAttribute("id", "toPyload");
-        f.setAttribute("style", "display:inline-block;margin-left: 5px");
         f.setAttribute("disabled", "");
+        f.setAttribute("class", "btn btn-primary btn-sm");
         f.innerHTML = "Send to pyLoad";
         f.onclick = function () {
             toPyload();
         };
-        z.appendChild(f);
+        group.appendChild(f);
         f = document.createElement("button");
         f.setAttribute("id", "toClipboard");
-        f.setAttribute("style", "display:inline-block;margin-left: 5px");
         f.setAttribute("disabled", "");
+        f.setAttribute("class", "btn btn-secondary btn-sm");
         f.innerHTML = "&#128203;";
         f.setAttribute("title", "Copy links to clipboard");
         f.onclick = function () {
             toClipboard();
         };
-        z.appendChild(f);
+        group.appendChild(f);
         f = document.createElement("button");
         f.setAttribute("id", "configtoggle");
-        f.setAttribute("style", "display:inline-block;margin-left: 5px");
+        f.setAttribute("class", "btn btn-secondary btn-sm");
         f.innerHTML = "&#9881;";
         f.onclick = function () {
             var c = bookmarkletWin.document.getElementById("config");
@@ -94,17 +101,18 @@ javascript:
                 c.style.display = "block";
             }
         };
-        z.appendChild(f);
+        group.appendChild(f);
+        z.appendChild(group);
         pnd.appendChild(z);
         f = document.createElement("fieldset");
         f.setAttribute("id", "config");
         f.style.display = "none";
         var serveraddr = typeof(bookmarkletWin.Storage) !== "undefined" ? bookmarkletWin.localStorage.getItem("pyloadServer") : "";
         serveraddr = serveraddr || defaultAddress;
-        f.innerHTML = "<legend style='font-weight:bold;'>Configuration</legend>pyLoad's address:<input type='text' id='serveraddr' size='30' style='margin-left: 5px' placeholder='scheme://address:port' value='" + serveraddr + "'>";
+        f.innerHTML = "<legend style='font-weight:bold;'>Configuration</legend>pyLoad's address:<input type='text' class='form-control' id='serveraddr' size='30' style='margin-left: 5px' placeholder='scheme://address:port' value='" + serveraddr + "'>";
         z = document.createElement("button");
         z.innerHTML = "Save";
-        z.style.cssFloat = "right";
+        z.setAttribute("class","btn btn-danger btn-sm float-right");
         z.onclick = function (ev) {
             var serveraddr = bookmarkletWin.document.getElementById("serveraddr").value;
             if (serveraddr.length > 0) {
@@ -115,14 +123,15 @@ javascript:
         f.append(z);
         pnd.appendChild(f);
         var e = document.createElement("div");
-        e.innerHTML = '<br><hr style="color:lightgrey;"><h2>Page URL:</h2><div style="display: inline-block; margin: 0;white-space: nowrap;"><input type="checkbox" id="checkurl"><label for="checkurl"><a href="' + url + '">' + url + '</a></label></div><br><br><hr style="color:lightgrey;">';
+        e.innerHTML = '<br><hr style="color:lightgrey;"><h4>Page URL:</h4><div style="display: inline-block; margin: 0;"><input type="checkbox" class="form-check-input" id="checkurl"><label for="checkurl"><a href="' + url + '">' + url + '</a></label></div><br><br><hr style="color:lightgrey;">';
         var t = document.createElement("div");
-        var n = document.createElement("h2");
+        var n = document.createElement("h4");
         n.setAttribute("id", "Filter links by keyword:");
         t.appendChild(n);
         var r = document.createElement("input");
         r.setAttribute("id", "searchInput");
         r.setAttribute("type", "text");
+        r.setAttribute("class", "form-control");
         r.setAttribute("placeholder", "Filter..");
         t.appendChild(r);
         t.innerHTML = t.innerHTML + " or Check domain: ";
@@ -139,10 +148,17 @@ javascript:
         t.appendChild(i);
         var l = document.createElement("div");
         l.setAttribute("id", "divLinks");
-        bookmarkletWin.document.body.appendChild(pnd);
-        bookmarkletWin.document.body.appendChild(e);
-        bookmarkletWin.document.body.appendChild(t);
-        bookmarkletWin.document.body.appendChild(l);
+        var style=document.createElement("link");
+        style.setAttribute("href","https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css");
+        style.setAttribute("rel","stylesheet");
+        bookmarkletWin.document.head.appendChild(style);
+        var container = document.createElement("div");
+        container.setAttribute("class","container");
+        container.appendChild(pnd);
+        container.appendChild(e);
+        container.appendChild(t);
+        container.appendChild(l);
+        bookmarkletWin.document.body.appendChild(container);
         bookmarkletWin.document.title = "Send to pyLoad";
         bookmarkletWin.document.getElementById("searchInput").oninput = function () {
             buildLinksDiv();
@@ -181,7 +197,7 @@ javascript:
         if (d !== "") {
             var r = new RegExp("(?://|\\.)" + d.replace(".", "\\.") + "(?:[?/]|$)", "i");
             for (n = 0; n < list_Links.length; n++) {
-                var l = list_Links[n].match(/:\/\/[^/?]+(?:[?/]|$)/g);
+                var l = list_Links[n].href.match(/:\/\/[^/?]+(?:[?/]|$)/g);
                 if (l && l[0].match(r)) {
                     list_DomainLinkIds.push(n);
                     if (list_Checked[n] === false)
@@ -226,30 +242,26 @@ javascript:
       }
       for (var n = 0; n < list_Checked.length; n++) {
         if (list_Checked[n]) {
-          list_PyLoad.push(list_Links[n]);
+          list_PyLoad.push(list_Links[n].href);
         }
       }
       if (sendMethod === 1) {
         winz = doPost(ps+"/flash/add",{name: pn, urls: list_PyLoad.join("\n")});
       } else if (sendMethod === 2) {
-        winz=window.open(ps+'/api/addPackage?name="'+pn+'"&links='+JSON.stringify(list_PyLoad),
+        winz=window.open(ps+'/api/addPackage?name="'+pn+'"&links='+encodeURIComponent(JSON.stringify(list_PyLoad)),
           "","resizable=no, location=no, width=100, height=100, menubar=no, status=no, scrollbars=no, menubar=no");
       } else if (sendMethod === 3) {
         var postParameters = {name: pn, links: JSON.stringify(list_PyLoad)};
 		winz = doPost(ps+"/api/addPackage",
 			{name: JSON.stringify(pn), links: JSON.stringify(list_PyLoad),u: username, p: password});
       }
-      setTimeout(function () {
-          winz.close();
-      }, 1000);
-      bookmarkletWin.close();
     }
 
     function toClipboard() {
         var list_PyLoad = bookmarkletWin.document.getElementById("checkurl").checked ? [url] : [];
         for (var n = 0; n < list_Checked.length; n++) {
             if (list_Checked[n]) {
-                list_PyLoad.push(list_Links[n]);
+                list_PyLoad.push(list_Links[n].href);
             }
         }
         var t = document.createElement('textarea');
@@ -274,25 +286,25 @@ javascript:
     }
 
     function doPost(url, postParameters) {
-        var winz, i;
-        var formElement = document.createElement("form");
-        formElement.style.display = "none";
-        formElement.target = "_Pyload";
-        formElement.method = "POST";
-        formElement.action = url;
-        for (var n in postParameters) {
-          if (postParameters.hasOwnProperty(n)) {
-            i = document.createElement("input");
-            i.type = "text";
-            i.name = n;
-            i.value = postParameters[n];
-            formElement.appendChild(i);
-          }
+      var winz, i;
+      var formElement = document.createElement("form");
+      formElement.style.display = "none";
+      formElement.target = "_Pyload";
+      formElement.method = "POST";
+      formElement.action = url;
+      for (var n in postParameters) {
+        if (postParameters.hasOwnProperty(n)) {
+          i = document.createElement("input");
+          i.type = "text";
+          i.name = n;
+          i.value = postParameters[n];
+          formElement.appendChild(i);
         }
-        bookmarkletWin.document.body.appendChild(formElement);
-        winz = bookmarkletWin.open("", "_Pyload", "resizable=no, location=no, width=100, height=100, menubar=no, status=no, scrollbars=no, menubar=no");
-        formElement.submit();
-        return winz;
+      }
+      bookmarkletWin.document.body.appendChild(formElement);
+      winz = bookmarkletWin.open("", "_Pyload", "resizable=no, location=no, width=100, height=100, menubar=no, status=no, scrollbars=no, menubar=no");
+      formElement.submit();
+      return winz;
     }
     parentWin = window;
     bookmarkletWin = window.open("", "_blank", "width=800,height=600,scrollbars,resizable,menubar");
