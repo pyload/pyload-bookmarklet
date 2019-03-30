@@ -255,6 +255,10 @@ javascript:
 		winz = doPost(ps+"/api/addPackage",
 			{name: JSON.stringify(pn), links: JSON.stringify(list_PyLoad),u: username, p: password});
       }
+      setTimeout(function () {
+        winz.close();
+      }, 1000);
+        bookmarkletWin.close();
     }
 
     function toClipboard() {
