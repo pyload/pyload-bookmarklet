@@ -18,8 +18,8 @@ Installation:
 2. Open *pyload_bookmarklet.min.js* with your favorite text editor and:
    - go to the end of the file - first parameter is the *pyLoad host*, the second is the *username*, the third is the *password* and the last is *submit method* (see notes below).
    - specify the pyLoad host (for method 1 this is typically should be `http://localhost:9666`, for methods 2&3 `http://localhost:8000`) and submit method.
-3. select and copy all the text
-4. On your Browser, create a new bookmark and name it "Send To pyLoad"
+3. Select and copy all the text to the clipboard.
+4. Open your Browser, create a new bookmark and name it "Send To pyLoad"
 5. For Firefox:
    - Location: Paste the javascript code you have copied before.
    

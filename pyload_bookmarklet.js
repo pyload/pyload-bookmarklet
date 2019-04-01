@@ -7,11 +7,11 @@ javascript:
         var results = [];
         var unique_links = {};
         for (var e = 0; e < parentWin.document.links.length; e++) {
-            t = parentWin.document.links[e];
+            var t = parentWin.document.links[e];
             if (!t.href.match(/^(?:mailto:|javascript:|data:)/)) {
               if(!unique_links[t.href]) {
                 unique_links[t.href] = true;
-                results.push({href:t.href,name:t.text});
+                results.push({href:t.href, name:t.text.replace(/(<([^>]+)>)/ig,"").trim()});
               }
             }
         }
@@ -44,7 +44,7 @@ javascript:
         var html = title + '<div id="container" class="form-group form-check"><input type="checkbox" id="checkall" class="form-check-input"><label for="checkall">All</label><div class="form-check">';
         for (var n = 0; n < list_Links.length; n++) {
             if (list_Links[n].href.toLocaleLowerCase().indexOf(t) !== -1 || list_Links[n].name.toLocaleLowerCase().indexOf(t) !== -1) {
-                html += '<div class="form-check"><input class="form-check-input" type="checkbox"' + (list_Checked[n] ? ' checked' : '') + ' id="link' + n + '"><label class="form-check-label small" for="link' + n + '"><span class="badge badge-warning">' + list_Links[n].name + '</span>&nbsp;<a href="' + list_Links[n].href + '">' + list_Links[n].href + "</a></label></div>";
+                html += '<div class="form-check"><input class="form-check-input" type="checkbox"' + (list_Checked[n] ? ' checked' : '') + ' id="link' + n + '"><label class="form-check-label small" for="link' + n + '">' + (list_Links[n].name ? '<span class="badge badge-warning">' + list_Links[n].name + '</span>&nbsp;' : '') + '<a href="' + list_Links[n].href + '">' + list_Links[n].href + "</a></label></div>";
             }
         }
         html += "</div></div>";
@@ -53,6 +53,10 @@ javascript:
     }
 
     function bookmarklet() {
+        var l=document.createElement("link");
+        l.setAttribute("href","https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css");
+        l.setAttribute("rel","stylesheet");
+        bookmarkletWin.document.head.appendChild(l);
         var pnd = document.createElement("div");
         var z = document.createElement("div");
         z.innerHTML = '<h4>Package Name:</h4>';
@@ -75,6 +79,7 @@ javascript:
         f.setAttribute("id", "toPyload");
         f.setAttribute("disabled", "");
         f.setAttribute("class", "btn btn-primary btn-sm");
+        f.setAttribute("style", "margin-left: 5px; border-radius: .25rem;");
         f.innerHTML = "Send to pyLoad";
         f.onclick = function () {
             toPyload();
@@ -84,6 +89,7 @@ javascript:
         f.setAttribute("id", "toClipboard");
         f.setAttribute("disabled", "");
         f.setAttribute("class", "btn btn-secondary btn-sm");
+        f.setAttribute("style", "margin-left: 5px; border-radius: .25rem;");
         f.innerHTML = "&#128203;";
         f.setAttribute("title", "Copy links to clipboard");
         f.onclick = function () {
@@ -93,6 +99,7 @@ javascript:
         f = document.createElement("button");
         f.setAttribute("id", "configtoggle");
         f.setAttribute("class", "btn btn-secondary btn-sm");
+        f.setAttribute("style", "margin-left: 5px; border-radius: .25rem;");
         f.innerHTML = "&#9881;";
         f.onclick = function () {
             var c = bookmarkletWin.document.getElementById("config");
@@ -121,9 +128,9 @@ javascript:
         };
         pnd.appendChild(f);
         var e = document.createElement("div");
-        e.innerHTML = '<hr style="color:lightgrey;"><h4>Page URL:</h4><div class="form-group form-check"><input type="checkbox" class="form-check-input" id="checkurl"><label for="checkurl"><a href="' + url + '">' + url + '</a></label></div><hr style="color:lightgrey;">';
+        e.innerHTML = '<hr style="color:lightgrey;"><h4>Page URL:</h4><div class="form-group form-check text-nowrap"><input type="checkbox" class="form-check-input" id="checkurl"><label for="checkurl"><a href="' + url + '">' + url + '</a></label></div><hr style="color:lightgrey;">';
         var t = document.createElement("div");
-        t.innerHTML = '<fieldset class="form-inline"><input id="searchInput" type="text" class="form-control form-control-sm mr-2" placeholder="Filter..." style="width: 60%;" /><select id="selectDomain" class="form-control form-control-sm"><option>Or check domain...</option></select></fieldset>';
+        t.innerHTML = '<fieldset class="form-inline"><input id="searchInput" type="text" class="form-control form-control-sm mr-2" placeholder="Filter links..." style="width: 60%;" /><select id="selectDomain" class="form-control form-control-sm"><option>Or check domain...</option></select></fieldset>';
         var selectDomain = t.querySelector('#selectDomain');
         list_Domains.forEach(function (s) {
             var o = document.createElement("option");
@@ -133,22 +140,14 @@ javascript:
             };
             selectDomain.appendChild(o)
         });
-        var l = document.createElement("div");
-        l.setAttribute("id", "divLinks");
-        var style=document.createElement("link");
-        style.setAttribute("href","https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css");
-        style.setAttribute("rel","stylesheet");
-        var viewport=document.createElement("meta");
-        viewport.setAttribute("name","viewport");
-        viewport.setAttribute("content","width=device-width, initial-scale=1");
-        bookmarkletWin.document.head.appendChild(style);
-        bookmarkletWin.document.head.appendChild(viewport);
+        var dl = document.createElement("div");
+        dl.setAttribute("id", "divLinks");
         var container = document.createElement("div");
-        container.setAttribute("class","container");
+        container.setAttribute("class","container-fluid");
         container.appendChild(pnd);
         container.appendChild(e);
         container.appendChild(t);
-        container.appendChild(l);
+        container.appendChild(dl);
         bookmarkletWin.document.body.appendChild(container);
         bookmarkletWin.document.title = "Send to pyLoad";
         bookmarkletWin.document.getElementById("searchInput").oninput = function () {
@@ -303,6 +302,8 @@ javascript:
     }
     parentWin = window;
     bookmarkletWin = window.open("", "_blank", "width=800,height=600,scrollbars,resizable,menubar");
+    bookmarkletWin.moveTo(0, 0);
+    bookmarkletWin.resizeTo(screen.availWidth, screen.availHeight );
     list_Links = getPageLinks();
     list_Checked = Array.apply(null, Array(list_Links.length)).map(Boolean.prototype.valueOf, false);
     numChecked = 0;
