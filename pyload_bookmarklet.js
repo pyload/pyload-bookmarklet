@@ -4,21 +4,22 @@ javascript:
     var parentWin, bookmarkletWin, list_Links, list_Domains, list_Checked, numChecked, url;
 
     function getPageLinks() {
-        var list_Links = [];
+        var results = [];
         var unique_links = {};
-        for (var e = parentWin.document.links.length - 1, t; t = parentWin.document.links[e]; e--) {
+        for (var e = 0; e < parentWin.document.links.length; e++) {
+            t = parentWin.document.links[e];
             if (!t.href.match(/^(?:mailto:|javascript:|data:)/)) {
               if(!unique_links[t.href]) {
                 unique_links[t.href] = true;
-                list_Links.push({href:t.href,name:t.text});
+                results.push({href:t.href,name:t.text});
               }
             }
         }
-        return list_Links;
+        return results;
     }
 
     function getPageDomains() {
-        var list_Domains = [""];
+        var list_Domains = [];
         for (var e = parentWin.document.links.length - 1, t; t = parentWin.document.links[e]; e--) {
             if (!t.href.match(/^(?:mailto:|javascript:|data:)/)) {
                 var d = t.hostname.match(/[^.]+\.(?:\w{3,}|\w{2,3}\.\w{2})$/);
@@ -35,12 +36,12 @@ javascript:
         var title;
         if (!t) {
             t = "";
-            title = "<h4> Links: </h4>";
+            title = "<h4>Links:</h4>";
         } else {
-            title = "<h4> Filtered links: &quot;" + t + "&quot;</h4>";
+            title = "<h4>Filtered links: &quot;" + t + "&quot;</h4>";
         }
         t = t.toLocaleLowerCase();
-        var html = title + '<div id="container"><input type="checkbox" id="checkall" class="form-check-input"><label for="checkall">All</label><div class="form-check">';
+        var html = title + '<div id="container" class="form-group form-check"><input type="checkbox" id="checkall" class="form-check-input"><label for="checkall">All</label><div class="form-check">';
         for (var n = 0; n < list_Links.length; n++) {
             if (list_Links[n].href.toLocaleLowerCase().indexOf(t) !== -1 || list_Links[n].name.toLocaleLowerCase().indexOf(t) !== -1) {
                 html += '<div class="form-check"><input class="form-check-input" type="checkbox"' + (list_Checked[n] ? ' checked' : '') + ' id="link' + n + '"><label class="form-check-label small" for="link' + n + '"><span class="badge badge-warning">' + list_Links[n].name + '</span>&nbsp;<a href="' + list_Links[n].href + '">' + list_Links[n].href + "</a></label></div>";
@@ -55,21 +56,21 @@ javascript:
         var pnd = document.createElement("div");
         var z = document.createElement("div");
         z.innerHTML = '<h4>Package Name:</h4>';
+        var i = document.createElement("div");
+        i.setAttribute("class","input-group");
         var pnt = document.createElement("input");
-        pnt.style.display = "inline-block";
         pnt.setAttribute("id", "packagename");
         pnt.setAttribute("type", "text");
         pnt.setAttribute("size", "70");
-        pnt.setAttribute("class", "form-control");
+        pnt.setAttribute("class", "form-control form-control-sm");
         pnt.setAttribute("value", parentWin.document.title);
         pnt.setAttribute("placeholder", "Package Name");
         pnt.oninput = function () {
             updateButtons();
         };
-        z.appendChild(pnt);
+        i.appendChild(pnt);
         var group = document.createElement("div");
-        group.setAttribute("class","btn-group");
-        group.setAttribute("role","group");
+        group.setAttribute("class","input-group-append");
         var f = document.createElement("button");
         f.setAttribute("id", "toPyload");
         f.setAttribute("disabled", "");
@@ -102,56 +103,46 @@ javascript:
             }
         };
         group.appendChild(f);
-        z.appendChild(group);
+        i.appendChild(group);
+        z.appendChild(i);
         pnd.appendChild(z);
         f = document.createElement("fieldset");
         f.setAttribute("id", "config");
         f.style.display = "none";
         var serveraddr = typeof(bookmarkletWin.Storage) !== "undefined" ? bookmarkletWin.localStorage.getItem("pyloadServer") : "";
         serveraddr = serveraddr || defaultAddress;
-        f.innerHTML = "<legend style='font-weight:bold;'>Configuration</legend>pyLoad's address:<input type='text' class='form-control' id='serveraddr' size='30' style='margin-left: 5px' placeholder='scheme://address:port' value='" + serveraddr + "'>";
-        z = document.createElement("button");
-        z.innerHTML = "Save";
-        z.setAttribute("class","btn btn-danger btn-sm float-right");
-        z.onclick = function (ev) {
+        f.innerHTML = "<h5>Configuration</h5><label for='serveraddr'>pyLoad's address:</label><div class='input-group'><input type='text' class='form-control form-control-sm' id='serveraddr' placeholder='scheme://address:port' value='" + serveraddr + "' /><div class='input-group-append'><button id='save-config' class='btn btn-danger btn-sm'>Save</button></div></div>";
+        f.querySelector('#save-config').onclick = function (ev) {
             var serveraddr = bookmarkletWin.document.getElementById("serveraddr").value;
             if (serveraddr.length > 0) {
                 bookmarkletWin.localStorage.setItem("pyloadServer", serveraddr);
                 bookmarkletWin.alert('Saved for domain "' + window.top.location.hostname + '"');
             }
         };
-        f.append(z);
         pnd.appendChild(f);
         var e = document.createElement("div");
-        e.innerHTML = '<br><hr style="color:lightgrey;"><h4>Page URL:</h4><div style="display: inline-block; margin: 0;"><input type="checkbox" class="form-check-input" id="checkurl"><label for="checkurl"><a href="' + url + '">' + url + '</a></label></div><br><br><hr style="color:lightgrey;">';
+        e.innerHTML = '<hr style="color:lightgrey;"><h4>Page URL:</h4><div class="form-group form-check"><input type="checkbox" class="form-check-input" id="checkurl"><label for="checkurl"><a href="' + url + '">' + url + '</a></label></div><hr style="color:lightgrey;">';
         var t = document.createElement("div");
-        var n = document.createElement("h4");
-        n.setAttribute("id", "Filter links by keyword:");
-        t.appendChild(n);
-        var r = document.createElement("input");
-        r.setAttribute("id", "searchInput");
-        r.setAttribute("type", "text");
-        r.setAttribute("class", "form-control");
-        r.setAttribute("placeholder", "Filter..");
-        t.appendChild(r);
-        t.innerHTML = t.innerHTML + " or Check domain: ";
-        var i = document.createElement("select");
-        i.setAttribute("id", "selectDomain");
+        t.innerHTML = '<fieldset class="form-inline"><input id="searchInput" type="text" class="form-control form-control-sm mr-2" placeholder="Filter..." style="width: 60%;" /><select id="selectDomain" class="form-control form-control-sm"><option>Or check domain...</option></select></fieldset>';
+        var selectDomain = t.querySelector('#selectDomain');
         list_Domains.forEach(function (s) {
             var o = document.createElement("option");
             o.text = s;
             o.onclick = function () {
                 domainCheck();
             };
-            i.appendChild(o)
+            selectDomain.appendChild(o)
         });
-        t.appendChild(i);
         var l = document.createElement("div");
         l.setAttribute("id", "divLinks");
         var style=document.createElement("link");
         style.setAttribute("href","https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css");
         style.setAttribute("rel","stylesheet");
+        var viewport=document.createElement("meta");
+        viewport.setAttribute("name","viewport");
+        viewport.setAttribute("content","width=device-width, initial-scale=1");
         bookmarkletWin.document.head.appendChild(style);
+        bookmarkletWin.document.head.appendChild(viewport);
         var container = document.createElement("div");
         container.setAttribute("class","container");
         container.appendChild(pnd);
