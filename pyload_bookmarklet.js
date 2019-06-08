@@ -3,7 +3,7 @@ javascript:
 (function (defaultAddress, username, password, sendMethod) {
     var parentWin, bookmarkletWin, list_Links, list_Domains, list_Checked, numChecked, url;
 
-    function getPageLinks() {
+    function extractPageLinks() {
         var results = [];
         var unique_links = {};
         for (var e = 0; e < parentWin.document.links.length; e++) {
@@ -18,16 +18,33 @@ javascript:
         return results;
     }
 
-    function getPageDomains() {
-        var list_Domains = [];
-        for (var e = parentWin.document.links.length - 1, t; t = parentWin.document.links[e]; e--) {
-            if (!t.href.match(/^(?:mailto:|javascript:|data:)/)) {
-                var d = t.hostname.match(/[^.]+\.(?:\w{3,}|\w{2,3}\.\w{2})$/);
-                if (d !== null && list_Domains.indexOf(d[0].toLowerCase()) < 0) {
-                    list_Domains.push(d[0].toLowerCase());
+    function extractSelectionLinks() {
+        var results = [];
+        var unique_links = {};
+        var selectedText = (parentWin.getSelection ? parentWin.getSelection() : (parentWin.document.getSelection ? parentWin.document.getSelection() : (parentWin.document.selection ? parentWin.document.selection.createRange().text : ''))).toString();
+        if (selectedText !== "") {
+            var urls = selectedText.match(/(?:ht|f)tp(?:s?):\/\/[a-zA-Z0-9-./?=_&%#:]+(?:[< "'\r\n\t]|$)/ig) || [];
+            for (var e = 0; e < urls.length; e++) {
+                var t = urls[e].replace(/[< "'\r\n\t]/g, "");
+                if(!unique_links[t]) {
+                    unique_links[t] = true;
+                    results.push({href:t, name:""});
                 }
             }
         }
+        return results;
+    }
+
+    function getPageDomains() {
+        var list_Domains = [];
+        var parser = document.createElement('a');
+        list_Links.forEach(function (l) {
+            parser.href = l.href;
+            var d = parser.hostname.match(/[^.]+\.(?:\w{3,}|\w{2,3}\.\w{2})$/);
+            if (d !== null && list_Domains.indexOf(d[0].toLowerCase()) < 0) {
+                list_Domains.push(d[0].toLowerCase());
+            }
+        });
         return list_Domains;
     }
 
@@ -301,13 +318,14 @@ javascript:
       return winz;
     }
     parentWin = window;
-    bookmarkletWin = window.open("", "_blank", "width=800,height=600,scrollbars,resizable,menubar");
+    bookmarkletWin = window.open("", "_blank", "width="+screen.availWidth+",height="+screen.availHeight+",scrollbars,resizable,menubar");
     bookmarkletWin.moveTo(0, 0);
-    bookmarkletWin.resizeTo(screen.availWidth, screen.availHeight );
-    list_Links = getPageLinks();
+    list_Links = extractSelectionLinks();
+    if (!list_Links.length) list_Links=extractPageLinks();
     list_Checked = Array.apply(null, Array(list_Links.length)).map(Boolean.prototype.valueOf, false);
     numChecked = 0;
     list_Domains = getPageDomains();
     url = parentWin.document.URL;
     bookmarklet();
+
 })("http://localhost:9666", "username", "password", 1);
