@@ -253,7 +253,7 @@ javascript:
         }
       }
       if (sendMethod === 1) {
-        winz = doPost(ps+"/flash/add",{name: pn, urls: list_PyLoad.join("\n")});
+        winz = doPost(ps+"/flash/add",{package: pn, urls: list_PyLoad.join("\n")});
       } else if (sendMethod === 2) {
         winz=window.open(ps+'/api/addPackage?name="'+pn+'"&links='+encodeURIComponent(JSON.stringify(list_PyLoad)),
           "","resizable=no, location=no, width=100, height=100, menubar=no, status=no, scrollbars=no, menubar=no");
